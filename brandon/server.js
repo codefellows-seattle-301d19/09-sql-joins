@@ -27,12 +27,12 @@ app.get('/new', function(request, response) {
 
 app.get('/articles', function (request, response) {
   // REVIEW: This query will join the data together from our tables and send it back to the client.
-  // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
+  // DONE: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
   client.query(
     `SELECT * FROM articles
     INNER JOIN authors
     ON authors.author_id = articles.author_id`)
-  .then(function(result) {
+  .then(function (result) {
     response.send(result.rows);
   })
   .catch(function (err) {
@@ -52,10 +52,10 @@ app.post('/articles', function (request, response) {
     [request.body.author, request.body.authorUrl]
   )
   .then(function() {
-    // TODO: Write a SQL query to insert a new article, using a sub-query to
+    // DONE: Write a SQL query to insert a new article, using a sub-query to
     // retrieve the author_id from the authors table. HINT: How might we combine
     // the functionality of a SELECT with VALUES when inserting new rows?
-    // TODO: Add the required values from the request as data for the SQL query to interpolate
+    // DONE: Add the required values from the request as data for the SQL query to interpolate
     client.query(
       `INSERT INTO articles(title, "authorUrl", category, "publishedOn", body)
       SELECT author_id, $1, $2, $3, $4, $5
