@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const app = express();
-const conString = '';// TODO: Don't forget to set your own conString
+const conString = 'postgres://localhost:5432/james-sean';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -26,8 +26,6 @@ app.get('/new', function(request, response) {
 });
 
 app.get('/articles', function(request, response) {
-  // REVIEW: This query will join the data together from our tables and send it back to the client.
-  // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
   client.query(
     `SELECT * FROM articles
      JOIN authors
@@ -42,11 +40,6 @@ app.get('/articles', function(request, response) {
 });
 
 app.post('/articles', function(request, response) {
-  // TODO: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
-  // TODO: Add author and "authorUrl" as data for the SQL query to interpolate.
-  //       Remember that client.query accepts two arguments: your SQL string and
-  //       an array of values that it will replace in a 1-to-1 relationship
-  //       with our placeholder values, signified with the syntax $1, $2, etc.
   client.query(
     `INSERT INTO authors(author, "authorUrl")
     VALUES($1, $2) ON CONFLICT DO NOTHING;`,
@@ -56,10 +49,6 @@ app.post('/articles', function(request, response) {
     ]
   )
   .then(function() {
-    // TODO: Write a SQL query to insert a new article, using a sub-query to
-    // retrieve the author_id from the authors table. HINT: How might we combine
-    // the functionality of a SELECT with VALUES when inserting new rows?
-    // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
       `INSERT INTO articles(author_id, title, category, "publishedOn", body)
       SELECT author_id, $1, $2, $3, $4
@@ -83,9 +72,6 @@ app.post('/articles', function(request, response) {
 });
 
 app.put('/articles/:id', function(request, response) {
-  // TODO: Write a SQL query to update an author record. Remember that our articles now have
-  // an author_id property, so we can reference it from the request.body.
-  // TODO: Add the required values from the request as data for the SQL query to interpolate
   client.query(
     `UPDATE authors
     SET author=$1, "authorUrl"=$2
@@ -97,9 +83,6 @@ app.put('/articles/:id', function(request, response) {
     ]
   )
   .then(function() {
-    // TODO: Write a SQL query to update an article record. Keep in mind that article records
-    // now have an author_id, in addition to title, category, publishedOn, and body.
-    // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
       `UPDATE articles
       SET title=$1, category=$2, "publishedOn"=$3, body=$4
@@ -150,10 +133,6 @@ app.listen(PORT, function() {
   console.log(`Server started on port ${PORT}!`);
 });
 
-
-//////// ** DATABASE LOADERS ** ////////
-////////////////////////////////////////
-// REVIEW: This helper function will load authors into the DB if the DB is empty
 function loadAuthors() {
   fs.readFile('./public/data/hackerIpsum.json', function(err, fd) {
     JSON.parse(fd.toString()).forEach(function(ele) {
@@ -165,7 +144,6 @@ function loadAuthors() {
   })
 }
 
-// REVIEW: This helper function will load articles into the DB if the DB is empty
 function loadArticles() {
   client.query('SELECT COUNT(*) FROM articles')
   .then(function(result) {
@@ -187,10 +165,6 @@ function loadArticles() {
   })
 }
 
-// REVIEW: Below are two queries, wrapped in the loadDB() function,
-// which create separate tables in our DB, and create a
-// relationship between the authors and articles tables.
-// THEN they load their respective data from our JSON file.
 function loadDB() {
   client.query(`
     CREATE TABLE IF NOT EXISTS
