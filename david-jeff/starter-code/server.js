@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const app = express();
-const conString = '';// TODO: Don't forget to set your own conString
+const conString = 'postgres://localhost:5432';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -22,16 +22,22 @@ app.get('/', function(request, response) {
 });
 
 app.get('/new', function(request, response) {
-  response.sendFile('new.html', {root: '.'});
+  response.sendFile('new.html', {root: './public'});
 });
 
 app.get('/articles', function(request, response) {
   // REVIEW: This query will join the data together from our tables and send it back to the client.
-  // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
-  client.query(``)
+  // TODO: xxx Write a SQL query which joins all data from articles and authors tables on the author_id value of each
+  client.query(
+    `SELECT authors.authors_id, articles.author
+    FROM authors
+    INNER JOIN authors_id ON authors.authors_id = articles.authors;
+    `)
+
   .then(function(result) {
     response.send(result.rows);
   })
+
   .catch(function(err) {
     console.error(err)
   });
