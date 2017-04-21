@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const app = express();
-const conString = '';// TODO: Don't forget to set your own conString
+const conString = 'postgres://mike:1234@localhost:5432/kilovolt';// TODO: Don't forget to set your own conString
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -18,17 +18,20 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static('./public'));
 
 app.get('/', function(request, response) {
-  response.sendFile('index.html', {root: '.'});
+  response.sendFile('index.html', {root: './public'});
 });
 
 app.get('/new', function(request, response) {
-  response.sendFile('new.html', {root: '.'});
+  response.sendFile('new.html', {root: './public'});
 });
 
 app.get('/articles', function(request, response) {
   // REVIEW: This query will join the data together from our tables and send it back to the client.
   // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
-  client.query(``)
+  client.query(`
+    SELECT title, author, "authorUrl", category, "publishedOn"
+    FROM articles INNER JOIN authors
+    ON authors.author_id = articles.author_id`)
   .then(function(result) {
     response.send(result.rows);
   })
@@ -44,7 +47,7 @@ app.post('/articles', function(request, response) {
   //       an array of values that it will replace in a 1-to-1 relationship
   //       with our placeholder values, signified with the syntax $1, $2, etc.
   client.query(
-    '',
+    `INSERT INTO author(author,"authorUrl")`,
     []
   )
   .then(function() {
