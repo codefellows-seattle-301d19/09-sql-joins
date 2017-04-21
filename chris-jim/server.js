@@ -4,7 +4,7 @@ const pg = require('pg');
 const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
-const PORT = process.env.PORT || 3030;
+const PORT = process.env.PORT || 3031;
 const app = express();
 const conString = 'postgres://postgres:1234@localhost:5432/kilovolt';// TODO: Don't forget to set your own conString
 const client = new pg.Client(conString);
@@ -18,11 +18,11 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static('./public'));
 
 app.get('/', function(request, response) {
-  response.sendFile('index.html', {root: '.'});
+  response.sendFile('index.html', {root: './public'});
 });
 
 app.get('/new', function(request, response) {
-  response.sendFile('new.html', {root: '.'});
+  response.sendFile('new.html', {root: './public'});
 });
 
 app.get('/articles', function(request, response) {
