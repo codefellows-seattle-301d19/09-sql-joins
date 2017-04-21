@@ -4,9 +4,9 @@ const pg = require('pg');
 const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const app = express();
-const conString = 'postgres://localhost:5432/kilovolt';// DONE: Don't forget to set your own conString
+const conString = 'postgres://postgres:postgres@localhost:5433/kilovolt';// DONE: Don't forget to set your own conString
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -52,10 +52,10 @@ app.post('/articles', function (request, response) {
     [request.body.author, request.body.authorUrl]
   )
   .then(function() {
-    // TODO: Write a SQL query to insert a new article, using a sub-query to
+    // DONE: Write a SQL query to insert a new article, using a sub-query to
     // retrieve the author_id from the authors table. HINT: How might we combine
     // the functionality of a SELECT with VALUES when inserting new rows?
-    // TODO: Add the required values from the request as data for the SQL query to interpolate
+    // DONE: Add the required values from the request as data for the SQL query to interpolate
     client.query(
       `INSERT INTO articles(title, "authorUrl", category, "publishedOn", body)
       SELECT author_id, $1, $2, $3, $4, $5
@@ -80,20 +80,44 @@ app.post('/articles', function (request, response) {
 });
 
 app.put('/articles/:id', function(request, response) {
-  // TODO: Write a SQL query to update an author record. Remember that our articles now have
+  // DONE: Write a SQL query to update an author record. Remember that our articles now have
   // an author_id property, so we can reference it from the request.body.
-  // TODO: Add the required values from the request as data for the SQL query to interpolate
+  // DONE: Add the required values from the request as data for the SQL query to interpolate
   client.query(
-    ``,
-    []
+    `UPDATE author
+    SET
+      title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
+      WHERE author_id=$7
+      `,
+    [
+      request.body.title,
+      request.body.author,
+      request.body.authorUrl,
+      request.body.category,
+      request.body.publishedOn,
+      request.body.body,
+      request.params.id,
+    ]
   )
   .then(function() {
     // TODO: Write a SQL query to update an article record. Keep in mind that article records
     // now have an author_id, in addition to title, category, publishedOn, and body.
     // TODO: Add the required values from the request as data for the SQL query to interpolate
     client.query(
-      ``,
-      []
+      `UPDATE article
+      SET
+        title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
+        WHERE author_id=$7
+        `,
+      [
+        request.body.title,
+        request.body.author,
+        request.body.authorUrl,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body,
+        request.params.id,
+      ]
     )
   })
   .then(function() {
