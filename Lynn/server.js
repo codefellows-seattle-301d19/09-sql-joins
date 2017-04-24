@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const app = express();
-const conString = 'postgres://localhost:5432/kilivoltdb';
+const conString = 'postgres://ricedude:potato@localhost:5432/kilovoltdb';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -41,17 +41,17 @@ app.post('/articles', function(request, response) {
     `INSERT INTO
     authors(author, "authorUrl")
     VALUES ($1, $2)
-    ON CONFLICT DO NOTHING
+    ON CONFLICT DO NOTHING;
     `,
     [
       request.body.author,
-      request.body.authorUrl,
+      request.body.authorUrl
     ]
   )
   .then(function() {
     client.query(
       `INSERT INTO
-      aritcles(author_id, title, category, publishedOn, body)
+      articles(author_id, title, category, publishedOn, body)
       SELECT author_id, $1, $2, $3, $4
       FROM authors
       Where author = $5;`,
@@ -60,7 +60,7 @@ app.post('/articles', function(request, response) {
         request.body.category,
         request.body.publishedOn,
         request.body.body,
-        request.params.author_id
+        request.body.author
       ]
     )
   })
