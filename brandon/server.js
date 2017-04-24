@@ -9,7 +9,7 @@ const app = express();
 const conString = 'postgres://localhost:5432/kilovolt';// DONE: Don't forget to set your own conString
 const client = new pg.Client(conString);
 client.connect();
-client.on('error', function(error) {
+client.on('error', function (error) {
   console.error(error);
 });
 
@@ -17,11 +17,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('./public'));
 
-app.get('/', function(request, response) {
+app.get('/', function (request, response) { // When the server receives the get request at the / home directory the response is sent back with the contents of whats held on index.html which is stored in our root folder of ./public.
   response.sendFile('index.html', { root: './public' });
 });
 
-app.get('/new', function(request, response) {
+app.get('/new', function (request, response) {
   response.sendFile('new.html', { root: './public' });
 });
 
@@ -36,7 +36,7 @@ app.get('/articles', function (request, response) {
     response.send(result.rows);
   })
   .catch(function (err) {
-    console.error(err)
+    console.error(err);
   });
 });
 
@@ -51,7 +51,7 @@ app.post('/articles', function (request, response) {
     VALUES($1, $2) ON CONFLICT DO NOTHING`,
     [request.body.author, request.body.authorUrl]
   )
-  .then(function() {
+  .then(function () {
     // DONE: Write a SQL query to insert a new article, using a sub-query to
     // retrieve the author_id from the authors table. HINT: How might we combine
     // the functionality of a SELECT with VALUES when inserting new rows?
@@ -69,116 +69,110 @@ app.post('/articles', function (request, response) {
         request.body.body,
         request.body.author,
       ]
-    )
+    );
   })
-  .then(function() {
-    response.send('Insert complete')
+  .then(function () {
+    response.send('Insert complete');
   })
-  .catch(function(err) {
-    console.error(err)
+  .catch(function (err) {
+    console.error(err);
   });
 });
 
-app.put('/articles/:id', function(request, response) {
+app.put('/articles/:id', function (request, response) {
   // DONE: Write a SQL query to update an author record. Remember that our articles now have
   // an author_id property, so we can reference it from the request.body.
   // DONE: Add the required values from the request as data for the SQL query to interpolate
   client.query(
     `UPDATE author
     SET
-      title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
-      WHERE author_id=$7
+      author=$1, "authorUrl"=$2,
+      WHERE author_id=$3
       `,
     [
-      request.body.title,
       request.body.author,
       request.body.authorUrl,
-      request.body.category,
-      request.body.publishedOn,
-      request.body.body,
-      request.params.id,
+      request.body.author_id,
     ]
   )
-  .then(function() {
+  .then(function () {
     // DONE: Write a SQL query to update an article record. Keep in mind that article records
     // now have an author_id, in addition to title, category, publishedOn, and body.
     // DONE: Add the required values from the request as data for the SQL query to interpolate
     client.query(
       `UPDATE article
       SET
-        title=$1, author=$2, "authorUrl"=$3, category=$4, "publishedOn"=$5, body=$6
-        WHERE author_id=$7
+        title=$1, category=$2, "publishedOn"=$3, body=$4, author_id=$5
+        WHERE article_id=$6
         `,
       [
         request.body.title,
-        request.body.author,
-        request.body.authorUrl,
         request.body.category,
         request.body.publishedOn,
         request.body.body,
+        request.body.author_id,
         request.params.id,
       ]
-    )
+    );
   })
-  .then(function() {
+  .then(function () {
     response.send('Update complete');
   })
-  .catch(function(err) {
+  .catch(function (err) {
     console.error(err);
-  })
+  });
 });
 
-app.delete('/articles/:id', function(request, response) {
+app.delete('/articles/:id', function (request, response) {
   client.query(
     `DELETE FROM articles WHERE article_id=$1;`,
     [request.params.id]
   )
-  .then(function() {
+  .then(function () {
     response.send('Delete complete');
   })
-  .catch(function(err) {
-    console.error(err)
+  .catch(function (err) {
+    console.error(err);
   });
 });
 
-app.delete('/articles', function(request, response) {
+app.delete('/articles', function (request, response) {
   client.query('DELETE FROM articles')
-  .then(function() {
+  .then(function () {
     response.send('Delete complete');
   })
-  .catch(function(err) {
-    console.error(err)
+  .catch(function (err) {
+    console.error(err);
   });
 });
 
 loadDB();
 
-app.listen(PORT, function() {
+app.listen(PORT, function () {
   console.log(`Server started on port ${PORT}!`);
 });
-
 
 //////// ** DATABASE LOADERS ** ////////
 ////////////////////////////////////////
 // REVIEW: This helper function will load authors into the DB if the DB is empty
 function loadAuthors() {
-  fs.readFile('./public/data/hackerIpsum.json', function(err, fd) {
-    JSON.parse(fd.toString()).forEach(function(ele) {
+  fs.readFile('./public/data/hackerIpsum.json', function (err, fd) {
+    JSON.parse(fd.toString()).forEach(function (ele) {
       client.query(
         'INSERT INTO authors(author, "authorUrl") VALUES($1, $2) ON CONFLICT DO NOTHING',
         [ele.author, ele.authorUrl]
-      )
-    })
-  })
+      );
+    });
+  });
 }
 
 // REVIEW: This helper function will load articles into the DB if the DB is empty
 function loadArticles() {
   client.query('SELECT COUNT(*) FROM articles')
-  .then(function(result) {
-    if(!parseInt(result.rows[0].count)) {
-      fs.readFile('./public/data/hackerIpsum.json', function(err, fd) {
-        JSON.parse(fd.toString()).forEach(function(ele) {
+  .then(function (result) {
+    if (!parseInt(result.rows[0].count)) {
+      fs.readFile('./public/data/hackerIpsum.json', function (err, fd) {
+        JSON.parse(fd.toString()).forEach(function (ele) {
           client.query(`
             INSERT INTO
             articles(author_id, title, category, "publishedOn", body)
@@ -187,11 +181,11 @@ function loadArticles() {
             WHERE author=$5;
           `,
             [ele.title, ele.category, ele.publishedOn, ele.body, ele.author]
-          )
-        })
-      })
+          );
+        });
+      });
     }
-  })
+  });
 }
 
 // REVIEW: Below are two queries, wrapped in the loadDB() function,
@@ -207,11 +201,11 @@ function loadDB() {
       "authorUrl" VARCHAR (255)
     );`
   )
-  .then(function(data) {
+  .then(function (data) {
     loadAuthors(data);
   })
-  .catch(function(err) {
-    console.error(err)
+  .catch(function (err) {
+    console.error(err);
   });
 
   client.query(`
@@ -225,10 +219,10 @@ function loadDB() {
       body TEXT NOT NULL
     );`
   )
-  .then(function(data) {
+  .then(function (data) {
     loadArticles(data);
   })
-  .catch(function(err) {
-    console.error(err)
+  .catch(function (err) {
+    console.error(err);
   });
 }
